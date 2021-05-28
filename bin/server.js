@@ -1,13 +1,16 @@
 const app = require('../app');
-const db = require('../model/db');
+const db = require('../models');
 
 const PORT = process.env.PORT || 3000;
 
-db.then(() => {
-  app.listen(PORT, () => {
-    console.log(`Database connection successful. PORT: ${PORT}`);
+db.sequelize
+  .authenticate()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Database connection successful. PORT: ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.log(`Server not run. Error: ${err.message}`);
+    process.exit(1);
   });
-}).catch(err => {
-  console.log(`Server not run. Error: ${err.message}`);
-  process.exit(1);
-});

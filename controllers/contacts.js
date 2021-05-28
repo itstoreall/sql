@@ -1,4 +1,4 @@
-const Contacts = require('../model/contacts');
+const Contacts = require('../repository/contacts');
 const { HttpCode } = require('../helpers/constants');
 
 // GET
@@ -34,6 +34,7 @@ const getById = async (req, res, next) => {
         .status(HttpCode.OK)
         .json({ status: 'success', code: HttpCode.OK, contact });
     }
+    
     return res.status(HttpCode.NOT_FOUND).json({
       status: 'error',
       code: HttpCode.NOT_FOUND,

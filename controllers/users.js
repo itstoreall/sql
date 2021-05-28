@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
-const Users = require('../model/users');
+const Users = require('../repository/users');
 const { HttpCode } = require('../helpers/constants');
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
@@ -35,7 +36,7 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await Users.findByEmail(email);
-    const isValidPassword = await user?.validPassword(password);
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!user || !isValidPassword) {
       return res.status(HttpCode.UNAUTHORIZED).json({
