@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       email: DataTypes.STRING,
       phone: DataTypes.STRING,
       favorite: { type: DataTypes.BOOLEAN, defaultValue: 0 },
+      // favorite: DataTypes.BOOLEAN,
       account: DataTypes.STRING,
       owner: DataTypes.INTEGER,
     },

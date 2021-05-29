@@ -11,56 +11,103 @@ const getAll = async (userId, query) => {
     favorite = false, // Filtration by field
   } = query; // query from controllers/contacts.js
 
-  const optionsSearch = { owner: userId };
+  const optionsSearch = {
+    page,
+    limit,
+    where: {
+      owner: userId,
+    },
+    attributes: ['id', 'name', 'favorite', 'createdAt', 'updatedAt'],
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'name', 'email', 'favorite', 'gender'],
+        include: { model: Gender },
+      },
+    ],
+  };
 
-  if (favorite !== null) {
-    optionsSearch.favorite = favorite;
+  const order = [];
+  if (sortBy) {
+    order.push([`${sortBy}`]);
+    optionsSearch.order = order;
+  }
+  if (sortByDesc) {
+    order.push([`${sortByDesc}`, `DESC`]);
+    optionsSearch.order = order;
+  }
+  if (filter) {
+    const attributes = filter.split('|');
+    optionsSearch.attributes = attributes;
   }
 
-  const results = await Contacts.paginate(optionsSearch, {
+  const { count, rows: contacts } = await Contacts.findAndCountAll(
+    optionsSearch,
+  );
+
+  return {
+    total: count,
     limit,
     page,
-    select: filter ? filter.split('|').join(' ') : '',
-    sort: {
-      ...(sortBy ? { [`${sortBy}`]: 1 } : {}), // Sorting in ascending order
-      ...(sortByDesc ? { [`${sortByDesc}`]: -1 } : {}), // Sorting in descending order
-    }, //
-  }); // docs
-  const { docs: contacts, totalDocs: total } = results;
-
-  return { contacts, total, limit, page };
+    contacts,
+  };
 };
 
 // GET by ID
 const getById = async (userId, id) => {
-  const result = await Contact.findOne({ _id: id, owner: userId }).populate({
-    // Substants the value and fields of the document instead of ID
-    path: 'owner',
-    select: 'name email -_id', // -_id (removes the field from output)
+  const contact = await Contacts.findOne({
+    where: {
+      id,
+      owner: userId,
+    },
   });
-  return result;
+  return contact;
 };
 
 // POST
 const create = async body => {
-  const result = await Contacts.create(body);
-  return result;
+  const contact = await Contacts.create(body);
+  return contact;
 };
 
 // DELETE
-const remove = async (userId, id) => {
-  const result = await Contacts.findByIdAndRemove({ _id: id, owner: userId });
-  return result;
+const remove = async (id, userId) => {
+  const contact = await Contacts.findOne({
+    where: {
+      id,
+      owner: userId,
+    },
+  });
+  if (contact) {
+    await Contacts.destroy({
+      where: {
+        id,
+        owner: userId,
+      },
+    });
+    return contact;
+  }
+  return null;
 };
 
 // UPDATE
-const update = async (userId, id, body) => {
-  const result = await Contacts.findOneAndUpdate(
-    { _id: id, owner: userId },
-    { ...body },
-    { new: true },
-  );
-  return result;
+const update = async (id, body, userId) => {
+  await Contacts.update(body, {
+    where: {
+      id,
+      owner: userId,
+    },
+  });
+  const contact = await Contacts.findOne({
+    where: {
+      id,
+      owner: userId,
+    },
+  });
+  if (contact) {
+    return contact;
+  }
+  return null;
 };
 
 module.exports = {

@@ -34,7 +34,7 @@ const getById = async (req, res, next) => {
         .status(HttpCode.OK)
         .json({ status: 'success', code: HttpCode.OK, contact });
     }
-    
+
     return res.status(HttpCode.NOT_FOUND).json({
       status: 'error',
       code: HttpCode.NOT_FOUND,
@@ -89,7 +89,7 @@ const remove = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const userId = req.user.id; // provides access to users in controllers
-    const contact = await Contacts.update(userId, req.params.id, req.body);
+    const contact = await Contacts.update(req.params.id, req.body, userId);
 
     if (contact) {
       return res
